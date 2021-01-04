@@ -1,16 +1,19 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-import os, argparse
-from scipy import misc
+import os
+import argparse
+from PIL import Image
 from lib.PraNet_Res2Net import PraNet
 from utils.dataloader import test_dataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--testsize', type=int, default=352, help='testing size')
-parser.add_argument('--pth_path', type=str, default='./snapshots/PraNet_Res2Net/PraNet-19.pth')
+parser.add_argument('--pth_path', type=str,
+                    default='./snapshots/PraNet_Res2Net/PraNet-19.pth')
 
-for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB']:
+for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB',
+                   'ETIS-LaribPolypDB']:
     data_path = './data/TestDataset/{}/'.format(_data_name)
     save_path = './results/PraNet/{}/'.format(_data_name)
     opt = parser.parse_args()
@@ -32,7 +35,9 @@ for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-Lar
 
         res5, res4, res3, res2 = model(image)
         res = res2
-        res = F.upsample(res, size=gt.shape, mode='bilinear', align_corners=False)
+        res = F.upsample(res, size=gt.shape, mode='bilinear',
+                         align_corners=False)
         res = res.sigmoid().data.cpu().numpy().squeeze()
         res = (res - res.min()) / (res.max() - res.min() + 1e-8)
-        misc.imsave(save_path+name, res)
+        img = Image.fromarray(res)
+        img.convert('RGB').save(save_path+name)
